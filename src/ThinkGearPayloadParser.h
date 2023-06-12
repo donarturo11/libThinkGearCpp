@@ -15,14 +15,12 @@ public:
     void addRawData(unsigned char c);
 private:
     void parseData();
-    void process(TGRawData& data);
 protected:
     ThinkGearPayloadPtr _payload;
     int _currentIndex;
     std::vector<TGRawData> _rawdata;
     ThinkGear *_tg;
     ThinkGearEvents *_events;
-    //std::vector<ThinkGearData> _savedData;
 };
 }
 #endif // TG_PAYLOAD_PARSER_H

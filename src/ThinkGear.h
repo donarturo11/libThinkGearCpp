@@ -2,7 +2,7 @@
 #define THINKGEAR_H
 
 #if defined _WIN32 || defined __CYGWIN__
-  #if defined(LIBTHINKGEARCPP_EXPORT)
+  #if defined(EXPORT)
     #define LIBTHINKGEARCPP_DLL_PUBLIC __declspec(dllexport)
   #else
     #define LIBTHINKGEARCPP_DLL_PUBLIC
