@@ -1,7 +1,7 @@
 #ifndef THINKGEAR_C_H
 #define THINKGEAR_C_H
 
-#if defined(LIBTHINKGEARCPP_EXPORT)
+#if defined(EXPORT)
   #if defined _WIN32 || defined __CYGWIN__
     #define THINKGEARAPI __declspec(dllexport)
   #else
@@ -52,15 +52,15 @@ typedef struct _tg_listener_ops {
     void (*onError)(void* receiver, unsigned char val);
 } tg_listener_ops;
 
-void TG_Init(thinkgear_t *tg);
-void TG_Destroy(thinkgear_t *tg);
-void TG_Load(thinkgear_t *tg, char c);
-void TG_LoadBuffer(thinkgear_t *tg, char *buffer, int size);
-void TG_AddListener(thinkgear_t *tg, tg_listener_t *listener);
-void TG_RemoveListener(thinkgear_t *tg, tg_listener_t *listener);
+THINKGEARAPI void TG_Init(thinkgear_t *tg);
+THINKGEARAPI void TG_Destroy(thinkgear_t *tg);
+THINKGEARAPI void TG_Load(thinkgear_t *tg, char c);
+THINKGEARAPI void TG_LoadBuffer(thinkgear_t *tg, char *buffer, int size);
+THINKGEARAPI void TG_AddListener(thinkgear_t *tg, tg_listener_t *listener);
+THINKGEARAPI void TG_RemoveListener(thinkgear_t *tg, tg_listener_t *listener);
 
-void TGListener_Init(tg_listener_t *listener);
-void TGListener_Destroy(tg_listener_t *listener);
+THINKGEARAPI void TGListener_Init(tg_listener_t *listener);
+THINKGEARAPI void TGListener_Destroy(tg_listener_t *listener);
 
 #ifdef __cplusplus
 }

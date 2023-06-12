@@ -1,70 +1,84 @@
 #include "ThinkGear.h"
+#include "ThinkGear_p.h"
 #include "thinkgear_c.h"
+#include "TGAsicEegData.h"
 #include <stdlib.h>
-using namespace libThinkGearCpp;
 namespace thinkgear_c {
 class ThinkGearListener
 {
 public:
     ThinkGearListener(tg_listener_t *listener) {
         _listener = listener;
+        _receiver = listener->receiver;
+        _listener->sender = this;
     }
-    ~ThinkGearListener();
-    void onRaw(short val);
-    void onBattery(unsigned char val);
-    void onPoorSignal(unsigned char val);
-    void onBlinkStrength(unsigned char val);
-    void onAttention(unsigned char val);
-    void onMeditation(unsigned char val);
-    void onEeg(TG_AsicEegData val);
-    void onConnecting(unsigned char val);
-    void onReady(unsigned char val);
-    void onError(unsigned char val);
+    ~ThinkGearListener(){};
+    void onThinkGearRaw(short val){ _listener->ops->onRaw(_receiver, val); }
+    void onThinkGearBattery(unsigned char val){ _listener->ops->onBattery(_receiver, val); }
+    void onThinkGearPoorSignal(unsigned char val){ _listener->ops->onPoorSignal(_receiver, val); }
+    void onThinkGearBlinkStrength(unsigned char val){ _listener->ops->onBlinkStrength(_receiver, val); }
+    void onThinkGearAttention(unsigned char val){ _listener->ops->onAttention(_receiver, val); }
+    void onThinkGearMeditation(unsigned char val){ _listener->ops->onMeditation(_receiver, val); }
+    void onThinkGearEeg(TG_AsicEegData val){ _listener->ops->onEeg(_receiver, val); }
+    void onThinkGearConnecting(unsigned char val){ _listener->ops->onConnecting(_receiver, val); }
+    void onThinkGearReady(unsigned char val){ _listener->ops->onReady(_receiver, val); }
+    void onThinkGearError(unsigned char val){ _listener->ops->onError(_receiver, val); }
 private:
     tg_listener_t *_listener;
+    void *_receiver;
 };
 }
 
-
 /*  ThinkGear Interface */
+using namespace libThinkGearCpp;
+using namespace thinkgear_c;
+
 void TG_Obj_Init(thinkgear_t *tg)
 {
-    tg->tg_obj = new ThinkGear();
+    tg->tg_obj = new ThinkGear_p();
 }
 
 void TG_Obj_Destroy(thinkgear_t *tg)
 {
-    delete reinterpret_cast<ThinkGear*>(tg->tg_obj);
+    delete reinterpret_cast<ThinkGear_p*>(tg->tg_obj);
 }
 
-ThinkGear* TG_Obj(ThinkGear *tg_cpp)
+ThinkGear_p* TG_Obj(thinkgear_t *tg_cpp)
 {
-    return reinterpret_cast<ThinkGear*>(tg_cpp);
+    return reinterpret_cast<ThinkGear_p*>(tg_cpp->tg_obj);
 }
-
 void TG_Obj_Load(thinkgear_t *tg, char c)
 {
-    reinterpret_cast<ThinkGear*>(tg->tg_obj)->load(c);
+    auto tg_obj = TG_Obj(tg);
+    tg_obj->load(c);
 }
 
 void TG_Obj_LoadBuffer(thinkgear_t *tg, char* buffer, int size)
 {
-    reinterpret_cast<ThinkGear*>(tg->tg_obj)->load(buffer, size);
+    auto tg_obj = TG_Obj(tg);
+    for (int i=0; i<size; i++) {
+        tg_obj->load(buffer[i]);
+    }
 }
 
+//template <class ListenerClass>
 void TG_Obj_AddListener(thinkgear_t *tg, tg_listener_t *listener)
 {
-    reinterpret_cast<ThinkGear*>(tg->tg_obj)->addListener(listener->sender);
+    auto tg_obj = TG_Obj(tg);
+    auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
+    tg_obj->events.connectListener(list_obj);
 }
 
+//template <class ListenerClass>
 void TG_Obj_RemoveListener(thinkgear_t *tg, tg_listener_t *listener)
 {
-    reinterpret_cast<ThinkGear*>(tg->tg_obj)->removeListener(listener->sender);
+    auto tg_obj = TG_Obj(tg);
+    auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
+    tg_obj->events.connectListener(list_obj);
 }
 
 /*  ThinkGearListener Interface */
 
-using namespace thinkgear_c;
 void TGListener_Obj_Init(tg_listener_t *listener)
 {
     listener->sender = new ThinkGearListener(listener);
@@ -74,6 +88,8 @@ void TGListener_Obj_Destroy(tg_listener_t *listener)
 {
     delete reinterpret_cast<ThinkGearListener*>(listener->sender);
 }
+
+
 //==========================
 extern "C" {
 void TG_Init(thinkgear_t *tg)
