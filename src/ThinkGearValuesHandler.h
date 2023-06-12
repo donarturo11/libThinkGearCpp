@@ -6,9 +6,6 @@
 #include "TGVariant.h"
 #include "ThinkGearEvent.h"
 #include "ThinkGearEvents.h"
-#include "TGAsicEegData.h"
-#include <iostream>
-#include <map>
 namespace libThinkGearCpp {
 class ThinkGearEvents;
 class ThinkGearValuesHandler

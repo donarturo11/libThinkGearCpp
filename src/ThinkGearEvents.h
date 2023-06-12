@@ -1,7 +1,7 @@
 #ifndef THINKGEAREVENTS_H
 #define THINKGEAREVENTS_H
 #include "ThinkGearEvent.h"
-#include "TGAsicEegData.h"
+#include "ThinkGear.h"
 #include "TGData_p.h"
 #include "TGEnums.h"
 #include <memory>

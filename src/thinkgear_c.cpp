@@ -1,10 +1,9 @@
 #include "ThinkGear.h"
-#include "ThinkGear_p.h"
+//#include "ThinkGear_p.h"
 #include "thinkgear_c.h"
-#include "TGAsicEegData.h"
 #include <stdlib.h>
 namespace thinkgear_c {
-class ThinkGearListener
+class ThinkGearListener : public libThinkGearCpp::ThinkGearAbstractListener
 {
 public:
     ThinkGearListener(tg_listener_t *listener) {
@@ -35,17 +34,17 @@ using namespace thinkgear_c;
 
 void TG_Obj_Init(thinkgear_t *tg)
 {
-    tg->tg_obj = new ThinkGear_p();
+    tg->tg_obj = new ThinkGear();
 }
 
 void TG_Obj_Destroy(thinkgear_t *tg)
 {
-    delete reinterpret_cast<ThinkGear_p*>(tg->tg_obj);
+    delete reinterpret_cast<ThinkGear*>(tg->tg_obj);
 }
 
-ThinkGear_p* TG_Obj(thinkgear_t *tg_cpp)
+ThinkGear* TG_Obj(thinkgear_t *tg_cpp)
 {
-    return reinterpret_cast<ThinkGear_p*>(tg_cpp->tg_obj);
+    return reinterpret_cast<ThinkGear*>(tg_cpp->tg_obj);
 }
 void TG_Obj_Load(thinkgear_t *tg, char c)
 {
@@ -66,7 +65,7 @@ void TG_Obj_AddListener(thinkgear_t *tg, tg_listener_t *listener)
 {
     auto tg_obj = TG_Obj(tg);
     auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
-    tg_obj->events.connectListener(list_obj);
+    tg_obj->removeListener(list_obj);
 }
 
 //template <class ListenerClass>
@@ -74,7 +73,7 @@ void TG_Obj_RemoveListener(thinkgear_t *tg, tg_listener_t *listener)
 {
     auto tg_obj = TG_Obj(tg);
     auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
-    tg_obj->events.connectListener(list_obj);
+    tg_obj->removeListener(list_obj);
 }
 
 /*  ThinkGearListener Interface */

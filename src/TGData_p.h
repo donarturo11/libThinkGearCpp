@@ -1,7 +1,7 @@
 #ifndef TGDATA_H
 #define TGDATA_H
 #include <vector>
-#include "TGAsicEegData.h"
+#include "ThinkGear.h"
 namespace libThinkGearCpp {
 struct TGData {
     TGData() : size{0} {}

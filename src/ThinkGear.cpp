@@ -23,14 +23,12 @@ void ThinkGear::load(char c)
 	_tg_p->load(c);
 }
 
-template <class ListenerClass>
-void ThinkGear::addListener(ListenerClass *listener)
+void ThinkGear::addListener(ThinkGearAbstractListener *listener)
 {
     _tg_p->events.connectListener(listener);    
 }
 
-template <class ListenerClass>
-void ThinkGear::removeListener(ListenerClass *listener)
+void ThinkGear::removeListener(ThinkGearAbstractListener *listener)
 {
     _tg_p->events.disconnectListener(listener);
 }
