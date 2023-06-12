@@ -3,15 +3,15 @@
 
 #if defined _WIN32 || defined __CYGWIN__
   #if defined(EXPORT)
-    #define LIBTHINKGEARCPP_DLL_PUBLIC __declspec(dllexport)
+    #define TGDLL __declspec(dllexport)
   #else
-    #define LIBTHINKGEARCPP_DLL_PUBLIC
+    #define TGDLL
   #endif
 #else
   #if __GNUC__ >= 4
-    #define LIBTHINKGEARCPP_DLL_PUBLIC __attribute__( (visibility( "default" )) )
+    #define TGDLL __attribute__( (visibility( "default" )) )
   #else
-    #define LIBTHINKGEARCPP_DLL_PUBLIC
+    #define TGDLL
   #endif
 #endif
 
@@ -40,7 +40,7 @@ namespace libThinkGearCpp {
 class ThinkGearAbstractListener;
 class ThinkGearEvents;
 class ThinkGear_p;
-class ThinkGear
+class TGDLL ThinkGear
 {
 public:
     ThinkGear();
