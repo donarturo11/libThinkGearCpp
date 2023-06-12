@@ -39,6 +39,7 @@ TG_AsicEegData ThinkGearValuesHandler::asicEegData(TGByteVector& v)
             val << v[i];
             i++;
         }
+        values << val.toUInt32();
         val.clear();
     }
     return values.data;    
