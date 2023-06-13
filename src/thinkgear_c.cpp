@@ -27,69 +27,22 @@ private:
 };
 }
 
-/*  ThinkGear Interface */
+
+extern "C" {
+
 using namespace libThinkGearCpp;
 using namespace thinkgear_c;
-
-void TG_Obj_Init(thinkgear_t *tg)
-{
-    tg->tg_obj = new ThinkGear();
-}
-
-void TG_Obj_Destroy(thinkgear_t *tg)
-{
-    delete reinterpret_cast<ThinkGear*>(tg->tg_obj);
-}
 
 ThinkGear* TG_Obj(thinkgear_t *tg_cpp)
 {
     return reinterpret_cast<ThinkGear*>(tg_cpp->tg_obj);
 }
-void TG_Obj_Load(thinkgear_t *tg, char c)
+
+ThinkGearListener* TGListener_Obj(tg_listener_t* listener)
 {
-    auto tg_obj = TG_Obj(tg);
-    tg_obj->load(c);
+    return reinterpret_cast<ThinkGearListener*>(listener->sender);
 }
 
-void TG_Obj_LoadBuffer(thinkgear_t *tg, char* buffer, int size)
-{
-    auto tg_obj = TG_Obj(tg);
-    for (int i=0; i<size; i++) {
-        tg_obj->load(buffer[i]);
-    }
-}
-
-//template <class ListenerClass>
-void TG_Obj_AddListener(thinkgear_t *tg, tg_listener_t *listener)
-{
-    auto tg_obj = TG_Obj(tg);
-    auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
-    tg_obj->addListener(list_obj);
-}
-
-//template <class ListenerClass>
-void TG_Obj_RemoveListener(thinkgear_t *tg, tg_listener_t *listener)
-{
-    auto tg_obj = TG_Obj(tg);
-    auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
-    tg_obj->removeListener(list_obj);
-}
-
-/*  ThinkGearListener Interface */
-
-void TGListener_Obj_Init(tg_listener_t *listener)
-{
-    listener->sender = new ThinkGearListener(listener);
-}
-
-void TGListener_Obj_Destroy(tg_listener_t *listener)
-{
-    delete reinterpret_cast<ThinkGearListener*>(listener->sender);
-}
-
-
-//==========================
-extern "C" {
 void TG_Init(thinkgear_t *tg)
 {
     tg->ops = (thinkgear_ops*) malloc(sizeof(thinkgear_ops));
@@ -97,45 +50,51 @@ void TG_Init(thinkgear_t *tg)
     tg->ops->load_buffer = TG_LoadBuffer;
     tg->ops->add_listener = TG_AddListener;
     tg->ops->remove_listener = TG_RemoveListener;
-    TG_Obj_Init(tg);
+    tg->tg_obj = new ThinkGear();
 }
 
 void TG_Destroy(thinkgear_t *tg)
 {
     free(tg->ops);
-    TG_Obj_Destroy(tg);
+    delete reinterpret_cast<ThinkGear*>(tg->tg_obj);
 }
 
 void TG_Load(thinkgear_t *tg, char c)
 {
-    TG_Obj_Load(tg, c);
+    auto tg_obj = TG_Obj(tg);
+    tg_obj->load(c);
 }
 
 void TG_LoadBuffer(thinkgear_t *tg, char* buffer, int size)
 {
-    TG_Obj_LoadBuffer(tg, buffer, size);
+    auto tg_obj = TG_Obj(tg);
+    tg_obj->load(buffer, size);
 }
 
 void TG_AddListener(thinkgear_t *tg, tg_listener_t *listener)
 {
-    TG_Obj_AddListener(tg, listener);
+    auto tg_obj = TG_Obj(tg);
+    auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
+    tg_obj->addListener(list_obj);
 }
 
 void TG_RemoveListener(thinkgear_t *tg, tg_listener_t *listener)
 {
-    TG_Obj_RemoveListener(tg, listener);
+    auto tg_obj = TG_Obj(tg);
+    auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
+    tg_obj->removeListener(list_obj);
 }
 
 /*------------------------------------*/
 void TGListener_Init(tg_listener_t *listener)
 {
     listener->ops = (tg_listener_ops*) malloc(sizeof(tg_listener_ops));
-    TGListener_Obj_Init(listener);
+    listener->sender = new ThinkGearListener(listener);
 }
 
 void TGListener_Destroy(tg_listener_t *listener)
 {
-    TGListener_Obj_Destroy(listener);
+    delete reinterpret_cast<ThinkGearListener*>(listener->sender);
     free(listener->ops);
 }
 
