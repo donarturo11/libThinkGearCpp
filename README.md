@@ -16,13 +16,18 @@ cmake --install .
 ```
 
 # Usage
-To use this library, you can add to CMakeLists.txt
+To use this library, you add to CMakeLists.txt
 ```
 find_package(thinkgearcpp)
 ```
 and
 ```
 target_link_libraries(${PROJECT_NAME} PUBLIC thinkgearcpp)
+```
+
+In header/source files in C/C++ add:
+```
+#include "thinkgearcpp/ThinkGear.h"
 ```
 
 In Makefile add to CFLAGS or CXXFLAGS ```-lthinkgearcpp```
