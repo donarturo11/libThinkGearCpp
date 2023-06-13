@@ -1,5 +1,4 @@
 #include "ThinkGear.h"
-//#include "ThinkGear_p.h"
 #include "thinkgear_c.h"
 #include <stdlib.h>
 namespace thinkgear_c {
@@ -11,7 +10,7 @@ public:
         _receiver = listener->receiver;
         _listener->sender = this;
     }
-    ~ThinkGearListener(){};
+    ~ThinkGearListener(){ };
     void onThinkGearRaw(short val){ _listener->ops->onRaw(_receiver, val); }
     void onThinkGearBattery(unsigned char val){ _listener->ops->onBattery(_receiver, val); }
     void onThinkGearPoorSignal(unsigned char val){ _listener->ops->onPoorSignal(_receiver, val); }
@@ -65,7 +64,7 @@ void TG_Obj_AddListener(thinkgear_t *tg, tg_listener_t *listener)
 {
     auto tg_obj = TG_Obj(tg);
     auto list_obj = reinterpret_cast<ThinkGearListener*>(listener->sender);
-    tg_obj->removeListener(list_obj);
+    tg_obj->addListener(list_obj);
 }
 
 //template <class ListenerClass>
