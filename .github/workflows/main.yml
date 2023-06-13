@@ -1,0 +1,266 @@
+# NOTE: Build jobs for MINGW64 are tomporarly disactivated because of issues with openGL
+# To install for windows use msbuild (MSVC) instead
+
+name: libThinkGearCpp
+
+on:
+  pull_request:
+    branches: [ ]
+  push:
+    branches: [ ]
+  create:
+    tags: ['v*'] # Push events to matching v*, i.e. v1.0, v20.15.10
+
+env:
+  pkgname: libThinkGearCpp
+  IDENTITY_NAME: ${{ secrets.IDENTITY_NAME }}
+jobs:
+  build:
+    strategy:
+      matrix:
+       include:
+        - { name: 'windows-mingw', os: windows-latest, flags: "", shell: 'msys2 {0}', of-sys: 'msys2' }
+        - { name: 'windows-msvc', os: windows-latest, flags: "", shell: 'msys2 {0}', of-sys: 'vs' }
+        - { name: 'linux', os: ubuntu-latest, flags: "", shell: 'bash', of-sys: 'linux' }
+        - { name: 'macos-universal', os: macos-latest, flags: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64;arm64\"", shell: 'bash', of-sys: 'osx' }
+        - { name: 'macos-legacy', os: macos-latest, flags: "-DCMAKE_OSX_DEPLOYMENT_TARGET=\"10.12\"", shell: 'bash', of-sys: 'osx' }
+    runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: ${{matrix.shell}}
+
+    steps:
+
+    - if: ${{runner.os == 'Windows'}}
+      name: Install MinGW
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: base base-devel p7zip zip unzip git
+    
+    - name: Install MinGW Dependencies
+      if: ${{runner.os == 'Windows'}}
+      run: |
+           echo "::notice:: MINGW_PACKAGE_PREFIX=${MINGW_PACKAGE_PREFIX}"
+           pacman -S --noconfirm \
+               ${MINGW_PACKAGE_PREFIX}-toolchain \
+               ${MINGW_PACKAGE_PREFIX}-cmake
+    
+    - name: Configure environment
+      run: |
+           if [ ${{ runner.os }} == 'Windows' ]; then
+               export WORKSPACE=$(cygpath -m "${{github.workspace}}") 
+           else
+               export WORKSPACE=${{github.workspace}}
+           fi
+           echo WORKSPACE=${WORKSPACE} >> $GITHUB_ENV
+           echo BUILD_DIR=${WORKSPACE}/build >> $GITHUB_ENV
+           mkdir ${WORKSPACE}/artifacts
+           mkdir -p ${WORKSPACE}/install/libThinkGearCpp
+           echo ARTIFACTS=${WORKSPACE}/artifacts >> $GITHUB_ENV
+           echo INSTALL_DIR=${WORKSPACE}/install/libThinkGearCpp >> $GITHUB_ENV
+           
+    - name: Prepare Packages names
+      run: |
+          PACKAGE_NAME=${{env.pkgname}}-${{matrix.name}}
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> ${GITHUB_ENV}
+
+    - name: Checkout Repo
+      uses: actions/checkout@v2
+
+    - name: Configure (POSIX)
+      if: ${{ matrix.of-sys != 'vs' }}
+      run: |
+           cmake -S "${{ env.WORKSPACE }}" -B "${{ env.BUILD_DIR }}" -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" ${{ matrix.flags }}
+    
+    - name: Configure (MSVC)
+      if: ${{ matrix.of-sys == 'vs' }}
+      shell: pwsh
+      run: |
+           cmake -S ${{ env.WORKSPACE }} -B "${{ env.BUILD_DIR }}" -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}"
+
+    - name: Prepare version (release)
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+          cd $WORKSPACE
+          echo "::notice:: ${{ github.ref_name }}"
+
+    - name: Prepare version (snapshot)
+      if: (! startsWith(github.ref, 'refs/tags/v'))
+      run: |
+          cd $WORKSPACE
+          export PKG_VER="$(git log -1 --pretty=%h)"
+          if [ ! -z "$PKG_VER" ]; then
+              echo "VER_CFLAG=\"-D_VER=\"${PKG_VER}\"\"" >> $GITHUB_ENV
+          fi
+          echo "::notice:: ${PKG_VER}"
+          echo "::notice:: ${VER_CFLAG}"
+
+    - name: Build and install (UNIX/Msys)
+      if: ${{ matrix.of-sys != 'vs' }}
+      run: |
+          cmake --build ${BUILD_DIR}
+          cmake --install ${BUILD_DIR}
+
+    - name: Build and install (MSVC)
+      if: ${{ matrix.of-sys == 'vs' }}
+      shell: pwsh
+      run: |
+          cmake --build "${{ env.BUILD_DIR }}" --config Release
+          cmake --install "${{ env.BUILD_DIR }}" --config Release --prefix "${{ env.INSTALL_DIR }}"
+      
+    - name: Prepare binaries to upload
+      run: |
+          mkdir -p ${{ env.ARTIFACTS }} || echo "exists"
+          cd ${WORKSPACE}/install
+          if [ ${{ runner.os }} == "Linux" ]; then 
+              tar -vczf ${PACKAGE_NAME}.tar.gz ${{ env.pkgname }}
+              mv -v ${PACKAGE_NAME}.tar.gz ${{ env.ARTIFACTS }}/
+          else 
+              zip -r ${PACKAGE_NAME}.zip ${{ env.pkgname }}
+              mv -v ${PACKAGE_NAME}.zip ${{ env.ARTIFACTS }}/
+          fi
+
+    - name: Upload All Binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PACKAGE_NAME }}
+        path: ${{ env.ARTIFACTS }}
+
+
+  publish:
+    needs: build
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get Build Tag
+        id: get_tag
+        run: echo ::set-output name=BUILD_TAG::build-$(date +'%Y%m%d%H%M')
+
+      - name: Get macOS Binary (universal)
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{env.pkgname}}-macos-universal
+          path: ${{github.workspace}}/${{env.pkgname}}-macos-universal
+      
+      - name: Get macOS Binary (legacy)
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{env.pkgname}}-macos-legacy
+          path: ${{github.workspace}}/${{env.pkgname}}-macos-legacy
+
+      - name: Get Linux Binary
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{env.pkgname}}-linux
+          path: ${{github.workspace}}/${{env.pkgname}}-linux
+          
+      - name: Get Windows Binary (mingw)
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{env.pkgname}}-windows-mingw
+          path: ${{github.workspace}}/${{env.pkgname}}-windows-mingw
+          
+      - name: Get Windows Binary (msvc)
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{env.pkgname}}-windows-msvc
+          path: ${{github.workspace}}/${{env.pkgname}}-windows-msvc
+
+      - if: github.event_name == 'push' # this is a snapshot build. create a release and upload binaries
+        name: Create Snapshot Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.get_tag.outputs.BUILD_TAG }}
+          tag_name: ${{ steps.get_tag.outputs.BUILD_TAG }}
+          generate_release_notes: true
+          prerelease: true
+          files: |
+            ${{github.workspace}}/${{env.pkgname}}-windows-msvc/*
+            ${{github.workspace}}/${{env.pkgname}}-linux/*
+            ${{github.workspace}}/${{env.pkgname}}-macos-universal/*
+            ${{github.workspace}}/${{env.pkgname}}-macos-legacy/*
+            ${{github.workspace}}/${{env.pkgname}}-windows-mingw/*            
+
+      - if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v') # this is a versioned build. check if release already exists
+        name: Find Existing Release
+        id: find_release
+        uses: cardinalby/git-get-release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          doNotFailIfNotFound: true
+          tag: ${{ github.ref_name }}
+
+      - if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v') && steps.find_release.outputs.id != 0 # release exists - upload macOS binary
+        name: Update Tagged Release (macOS)
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.find_release.outputs.upload_url }}
+          asset_path: ${{github.workspace}}/${{env.pkgname}}-macos-universal
+          asset_name: ${{env.pkgname}}-macos-universal
+          asset_content_type: application/octet-stream
+          
+      - if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v') && steps.find_release.outputs.id != 0 # release exists - upload macOS binary
+        name: Update Tagged Release (macOS legacy)
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.find_release.outputs.upload_url }}
+          asset_path: ${{github.workspace}}/${{env.pkgname}}-macos-legacy
+          asset_name: ${{env.pkgname}}-macos-legacy
+          asset_content_type: application/octet-stream
+
+      - if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v') && steps.find_release.outputs.id != 0 # release exists - upload Linux binary
+        name: Update Tagged Release (Linux)
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.find_release.outputs.upload_url }}
+          asset_path: ${{github.workspace}}/${{env.pkgname}}-linux
+          asset_name: ${{env.pkgname}}-linux-x86_64
+          asset_content_type: application/octet-stream
+
+      - if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v') && steps.find_release.outputs.id != 0 # release exists - upload Windows binary
+        name: Update Tagged Release (Windows msvc)
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.find_release.outputs.upload_url }}
+          asset_path: ${{github.workspace}}/${{env.pkgname}}-windows-msvc
+          asset_name: ${{env.pkgname}}-win-msvc-x86_64
+          asset_content_type: application/octet-stream
+      
+      - if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v') && steps.find_release.outputs.id != 0 # release exists - upload Windows binary
+        name: Update Tagged Release (Windows mingw)
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.find_release.outputs.upload_url }}
+          asset_path: ${{github.workspace}}/${{env.pkgname}}-windows-mingw
+          asset_name: ${{env.pkgname}}-win-mingw-x86_64
+          asset_content_type: application/octet-stream
+
+      - if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v') && steps.find_release.outputs.id == 0 # otherwise release does not exist, create one and upload binaries
+        name: Create Tagged Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: false
+          files: |
+            ${{github.workspace}}/${{env.pkgname}}-macos-universal*
+            ${{github.workspace}}/${{env.pkgname}}-macos-legacy*
+            ${{github.workspace}}/${{env.pkgname}}-windows-msvc*
+            ${{github.workspace}}/${{env.pkgname}}-linux*
+            ${{github.workspace}}/${{env.pkgname}}-windows-mingw*
