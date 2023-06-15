@@ -46,7 +46,7 @@ typedef struct _tg_listener_ops {
     void (*onBlinkStrength)(void* receiver, unsigned char val);
     void (*onAttention)(void* receiver, unsigned char val);
     void (*onMeditation)(void* receiver, unsigned char val);
-    void (*onEeg)(void* receiver, TG_AsicEegData val);
+    void (*onEeg)(void* receiver, tg_eegint_t val);
     void (*onConnecting)(void* receiver, unsigned char val);
     void (*onReady)(void* receiver, unsigned char val);
     void (*onError)(void* receiver, unsigned char val);

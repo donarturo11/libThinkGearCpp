@@ -4,6 +4,19 @@
 #include "ThinkGearEvents.h"
 
 namespace libThinkGearCpp {
+#ifdef __cplusplus
+extern "C"
+#endif
+unsigned int tg_eegint_sum(tg_eegint_t* data)
+{
+    int sum=0;
+    for(unsigned int *it=&(data->eegDelta); it!= &(data->eegMidGamma)+1; it++) {
+        sum += *it;
+    }
+    return sum;
+}
+
+
 ThinkGear::ThinkGear() : 
 _tg_p {std::make_unique<ThinkGear_p>(this)}
 {}

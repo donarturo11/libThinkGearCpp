@@ -1,5 +1,4 @@
 #include "ThinkGearValuesHandler.h"
-
 namespace libThinkGearCpp {
 ThinkGearValuesHandler::ThinkGearValuesHandler (ThinkGear *tg)
 {
@@ -30,7 +29,7 @@ void ThinkGearValuesHandler::process(TGRawData& data)
      
 }
 
-TG_AsicEegData ThinkGearValuesHandler::asicEegData(TGByteVector& v)
+tg_eegint_t ThinkGearValuesHandler::asicEegData(TGByteVector& v)
 {
     TGIntEegValues values;
     TGVariant val;

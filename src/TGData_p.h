@@ -36,7 +36,7 @@ struct TGInt : TGData
 
 struct TGIntEegValues : TGData
 {
-    TG_AsicEegData data;
+    tg_eegint_t data;
     /* Iterators */
     unsigned int* begin;
     unsigned int* end;

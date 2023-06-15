@@ -15,7 +15,7 @@ public:
     ThinkGearValuesHandler (TGRawData& data, ThinkGear *tg = 0);
 	void process(TGRawData& data);
 private:
-    TG_AsicEegData asicEegData(TGByteVector& v);
+    tg_eegint_t asicEegData(TGByteVector& v);
 protected:
     ThinkGearEvents* _events;
 };

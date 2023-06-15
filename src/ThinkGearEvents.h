@@ -46,7 +46,7 @@ public:
     TGEvent<unsigned char> onBlinkStrength;
     TGEvent<unsigned char> onAttention;
     TGEvent<unsigned char> onMeditation;
-    TGEvent<TG_AsicEegData> onEeg;
+    TGEvent<tg_eegint_t> onEeg;
     TGEvent<unsigned char> onConnecting;
     TGEvent<unsigned char> onReady;
     TGEvent<unsigned char> onError;

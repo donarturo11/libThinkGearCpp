@@ -17,7 +17,7 @@ public:
     void onThinkGearBlinkStrength(unsigned char val){ _listener->ops->onBlinkStrength(_receiver, val); }
     void onThinkGearAttention(unsigned char val){ _listener->ops->onAttention(_receiver, val); }
     void onThinkGearMeditation(unsigned char val){ _listener->ops->onMeditation(_receiver, val); }
-    void onThinkGearEeg(TG_AsicEegData val){ _listener->ops->onEeg(_receiver, val); }
+    void onThinkGearEeg(tg_eegint_t val){ _listener->ops->onEeg(_receiver, val); }
     void onThinkGearConnecting(unsigned char val){ _listener->ops->onConnecting(_receiver, val); }
     void onThinkGearReady(unsigned char val){ _listener->ops->onReady(_receiver, val); }
     void onThinkGearError(unsigned char val){ _listener->ops->onError(_receiver, val); }
