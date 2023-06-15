@@ -4,13 +4,12 @@ Entire code is rewritten in c++ basing on ofxThinkGear from [BrainwaveOSC](https
 The goal of this project is make independent of frameworks
 
 # Build
-In square parenthesis is a option to build example projects to test or find own inspiration for own projects.
 Type:
 ```
 cd libThinkGearCpp
 mkdir build
 cd build
-cmake .. [-DCOMPILE_PROJECTS=1]
+cmake ..
 cmake --build .
 cmake --install .
 ```
