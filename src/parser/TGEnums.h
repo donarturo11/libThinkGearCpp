@@ -30,7 +30,7 @@ typedef enum {
     InvalidWithSync,
     PlenghtTooLarge,
     ChecksumFailed,
-    ParserIsNull,
+    ParserIsNotInitialized,
     PacketIsNotComplete,
     Success
 } ReceiveStatus;

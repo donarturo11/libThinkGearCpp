@@ -1,9 +1,7 @@
 #ifndef THINKGEAREVENTS_H
 #define THINKGEAREVENTS_H
 #include "ThinkGearEvent.h"
-#include "ThinkGear.h"
-#include "TGData_p.h"
-#include "TGEnums.h"
+#include "TGEegData.h"
 #include <memory>
 
 namespace libThinkGearCpp {
@@ -13,7 +11,7 @@ class ThinkGearEvents
 {
 public:
     ThinkGearEvents(){}
-    
+    ThinkGearEvents* events() { return this; }
     template<class ListenerClass>
     void connectListener(ListenerClass *listener) {
         TGEventConnect(&onRaw, listener, &ListenerClass::onThinkGearRaw);
@@ -46,7 +44,7 @@ public:
     TGEvent<unsigned char> onBlinkStrength;
     TGEvent<unsigned char> onAttention;
     TGEvent<unsigned char> onMeditation;
-    TGEvent<tg_eegint_t> onEeg;
+    TGEvent<eegData> onEeg;
     TGEvent<unsigned char> onConnecting;
     TGEvent<unsigned char> onReady;
     TGEvent<unsigned char> onError;

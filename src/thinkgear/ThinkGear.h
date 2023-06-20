@@ -15,25 +15,7 @@
   #endif
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef struct _tg_eegint_t {
-    unsigned int eegDelta; // 100000 / 1500000 . 0.5-2.75hz
-    unsigned int eegTheta; // 300000 / 600000 . 3.5-6.75hz
-    unsigned int eegLowAlpha; // 2500 / 75000 . 7.5-9.25hz
-    unsigned int eegHighAlpha; // 2500 / 150000 . 10-11.75hz
-    unsigned int eegLowBeta; // 1500 / 60000 . 13-16.75hz
-    unsigned int eegHighBeta; // 2500 / 60000 . 18-29.75hz
-    unsigned int eegLowGamma; // 5000 / 300000 . 31-39.75hz
-    unsigned int eegMidGamma; // 5000 / 300000 . 41-49.75hz
-} tg_eegint_t;
-
-unsigned int tg_eegint_sum(tg_eegint_t* data);
-
-#ifdef __cplusplus
-}
-#endif
+#include "TGEegData.h"
 
 #ifdef __cplusplus
 #include <memory>
@@ -41,6 +23,7 @@ unsigned int tg_eegint_sum(tg_eegint_t* data);
 namespace libThinkGearCpp {
 class ThinkGearAbstractListener;
 class ThinkGearEvents;
+class ThinkGearStreamParser;
 class ThinkGear_p;
 class TGDLL ThinkGear
 {
@@ -54,7 +37,7 @@ public:
     ThinkGearEvents* events();
     bool parsing() const;
 private:
-    std::unique_ptr<ThinkGear_p> _tg_p;
+    ThinkGear_p* _tg_p;
 };
 
 
@@ -67,7 +50,7 @@ public:
     virtual void onThinkGearBlinkStrength(unsigned char val) = 0;
     virtual void onThinkGearAttention(unsigned char val) = 0;
     virtual void onThinkGearMeditation(unsigned char val) = 0;
-    virtual void onThinkGearEeg(tg_eegint_t val) = 0;
+    virtual void onThinkGearEeg(eegData val) = 0;
     virtual void onThinkGearConnecting(unsigned char val) = 0;
     virtual void onThinkGearReady(unsigned char val) = 0;
     virtual void onThinkGearError(unsigned char val) = 0;

@@ -11,7 +11,10 @@
   #define THINKGEARAPI //__declspec(dllimport)
 #endif
 
+#include "TGEegData.h"
+
 #ifdef __cplusplus
+namespace libThinkGearCpp {
 extern "C" {
 #endif
 
@@ -19,7 +22,6 @@ typedef struct _thinkgear_t thinkgear_t;
 typedef struct _thinkgear_ops thinkgear_ops;
 typedef struct _tg_listener_t tg_listener_t;
 typedef struct _tg_listener_ops tg_listener_ops;
-typedef struct _TG_AsicEegData TG_AsicEegData;
 
 typedef struct _thinkgear_t {
     void *tg_obj;
@@ -46,7 +48,7 @@ typedef struct _tg_listener_ops {
     void (*onBlinkStrength)(void* receiver, unsigned char val);
     void (*onAttention)(void* receiver, unsigned char val);
     void (*onMeditation)(void* receiver, unsigned char val);
-    void (*onEeg)(void* receiver, tg_eegint_t val);
+    void (*onEeg)(void* receiver, eegData val);
     void (*onConnecting)(void* receiver, unsigned char val);
     void (*onReady)(void* receiver, unsigned char val);
     void (*onError)(void* receiver, unsigned char val);
@@ -63,7 +65,8 @@ THINKGEARAPI void TGListener_Init(tg_listener_t *listener);
 THINKGEARAPI void TGListener_Destroy(tg_listener_t *listener);
 
 #ifdef __cplusplus
-}
+} // extern "C"
+} // namespace libThinkGearCpp
 #endif        
 
 
