@@ -2,7 +2,8 @@
 #include "thinkgear_c.h"
 #include <stdlib.h>
 namespace thinkgear_c {
-class ThinkGearListener : public libThinkGearCpp::ThinkGearAbstractListener
+using namespace libThinkGearCpp;
+class ThinkGearListener : public ThinkGearAbstractListener
 {
 public:
     ThinkGearListener(tg_listener_t *listener) {
@@ -17,7 +18,7 @@ public:
     void onThinkGearBlinkStrength(unsigned char val){ _listener->ops->onBlinkStrength(_receiver, val); }
     void onThinkGearAttention(unsigned char val){ _listener->ops->onAttention(_receiver, val); }
     void onThinkGearMeditation(unsigned char val){ _listener->ops->onMeditation(_receiver, val); }
-    void onThinkGearEeg(tg_eegint_t val){ _listener->ops->onEeg(_receiver, val); }
+    void onThinkGearEeg(eegData val){ _listener->ops->onEeg(_receiver, val); }
     void onThinkGearConnecting(unsigned char val){ _listener->ops->onConnecting(_receiver, val); }
     void onThinkGearReady(unsigned char val){ _listener->ops->onReady(_receiver, val); }
     void onThinkGearError(unsigned char val){ _listener->ops->onError(_receiver, val); }
@@ -27,11 +28,9 @@ private:
 };
 }
 
-
-extern "C" {
-
-using namespace libThinkGearCpp;
+namespace libThinkGearCpp {
 using namespace thinkgear_c;
+extern "C" {
 
 ThinkGear* TG_Obj(thinkgear_t *tg_cpp)
 {
@@ -99,3 +98,4 @@ void TGListener_Destroy(tg_listener_t *listener)
 }
 
 } // extern "C"
+} // namespace // libThinkGearCpp

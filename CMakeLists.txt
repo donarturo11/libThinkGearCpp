@@ -6,14 +6,29 @@ option(BUILD_SHARED "Whether to build the shared library" ON)
 option(BUILD_STATIC "Whether to build the static library" ON)
 option(COMPILE_PROJECTS "Build test" OFF)
 
-#include_directories(src)
-#include_directories(tests)
-FILE(GLOB THINKGEAR_SOURCES src/*.cpp)
+include_directories(src/parser)
+include_directories(src/signaler)
+include_directories(src/thinkgear)
+
+
+FILE(GLOB THINKGEAR_SOURCES 
+          src/thinkgear/*.cpp
+          src/signaler/*.cpp
+          src/parser/*.cpp
+    )
 
 set (THINKGEAR_HEADERS
-     src/ThinkGear.h
-     src/thinkgear_c.h
-    )
+     src/thinkgear/ThinkGear.h
+     src/thinkgear/thinkgear_c.h
+     src/parser/ThinkGearStreamParser.h
+     src/parser/ThinkGearValueHandler.h
+     src/parser/TGData.h
+     src/parser/TGEnums.h
+     src/signaler/ThinkGearEvent.h
+     src/signaler/ThinkGearEvents.h
+     src/signaler/ThinkGearSignaler.h
+     src/signaler/TGEegData.h
+     )
 
 if(BUILD_STATIC)
     message("Build static library")

@@ -44,7 +44,7 @@ void OSCSender::onThinkGearMeditation(unsigned char val)
     sendOSC("/meditation", msg);
 }
 
-void OSCSender::onThinkGearEeg(tg_eegint_t val)
+void OSCSender::onThinkGearEeg(eegData val)
 {
     const std::string pathes[] = {
         "/eegdelta",
@@ -57,7 +57,7 @@ void OSCSender::onThinkGearEeg(tg_eegint_t val)
         "/eeghighgamma"
     };
     
-    int sum = tg_eegint_sum(&val);
+    int sum = val.eegSum;
     int path_idx=0;
     for(unsigned int *it=&(val.eegDelta); it!= &(val.eegMidGamma)+1; it++) {
         float fvalue = ((float)(*it)/(float) (sum) );

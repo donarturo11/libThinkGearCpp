@@ -1,10 +1,13 @@
 #include "ThinkGearStreamParser.h"
 #include "ThinkGearPayloadParser.h"
+#include "ThinkGearPayload.h"
+#include "TGEnums.h"
 #include <iostream>
 #include <memory>
 namespace libThinkGearCpp {
-ThinkGearStreamParser::ThinkGearStreamParser(ParserTypes type, ThinkGear *tg)
-: _type{type}, _tg{tg}
+int ThinkGearStreamParser::queue_capacity = 512;
+ThinkGearStreamParser::ThinkGearStreamParser(ParserTypes type, ThinkGearValueHandler *handler)
+: _type{type}, _handler{handler}
 {
     init();
 }
@@ -32,8 +35,6 @@ void ThinkGearStreamParser::parseByte(unsigned char byte)
 {
     if (!isInited()) return;
     _lastByte = byte;
-    //std::cout << "=====================" << std::endl;
-    //std::cout << "Received byte: " << std::hex << (int) byte << std::endl;
     switch (_status) {
         case( ParserStatus::Idle ): receiveSyncByte(); break;
         case( ParserStatus::Sync ): receiveSyncByte(); break;
@@ -42,9 +43,8 @@ void ThinkGearStreamParser::parseByte(unsigned char byte)
         case( ParserStatus::Checksum ): checkPayload(); break;
         case( ParserStatus::WaitHigh ): twoByteRawInit(); break;
         case( ParserStatus::WaitLow ): twoByteRawParse(); break;
+        default: _receive_status = ReceiveStatus::Unrecognized;
     }
-    //std::cout << "=====================" << std::endl;
-    
 }
 
 void ThinkGearStreamParser::receiveSyncByte()
@@ -103,9 +103,8 @@ void ThinkGearStreamParser::checkPayload()
 
 void ThinkGearStreamParser::parsePayload()
 {
-    ThinkGearPayloadParser payloadParser(std::move(_payload), _tg);
+    ThinkGearPayloadParser payloadParser(std::move(_payload), this);
     reset();
-    
 }
 
 void ThinkGearStreamParser::twoByteRawInit()
@@ -119,6 +118,31 @@ void ThinkGearStreamParser::twoByteRawInit()
 void ThinkGearStreamParser::twoByteRawParse()
 {
     _payload->writeByte(_lastByte);
+    parsePayload();
+}
+
+void ThinkGearStreamParser::pushToQueue(TGData data)
+{
+    if (_handler) _handler->pushData(data);
+    while (_received_data.size() > queue_capacity) _received_data.pop();
+    if (queue_capacity)
+        _received_data.push(data);
+}
+
+TGData ThinkGearStreamParser::getData()
+{
+    auto data = _received_data.front();
+    _received_data.pop();
+    return data;
+}
+
+std::vector<TGData> ThinkGearStreamParser::getAllData()
+{
+    std::vector<TGData> v;
+    while (! _received_data.empty()) {
+        v.push_back(getData());
+    }
+    return v;
 }
 
 } // namespace libThinkGearCpp

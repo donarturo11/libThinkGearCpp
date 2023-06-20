@@ -8,8 +8,8 @@
 #define BUFFERSIZE 1024
 
 namespace TG {
-
-class OSCSender : public libThinkGearCpp::ThinkGearAbstractListener
+using namespace libThinkGearCpp;
+class OSCSender : public ThinkGearAbstractListener
 {
 typedef void (*SocketCallback)(void* socket, unsigned char* data, size_t size);
 public:
@@ -20,7 +20,7 @@ public:
     void onThinkGearPoorSignal(unsigned char val);
     void onThinkGearAttention(unsigned char val);
     void onThinkGearMeditation(unsigned char val);
-    void onThinkGearEeg(tg_eegint_t val);
+    void onThinkGearEeg(eegData val);
     void onThinkGearConnecting(unsigned char val);
     void onThinkGearReady(unsigned char val);
     void onThinkGearError(unsigned char val);
