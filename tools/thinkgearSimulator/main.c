@@ -144,18 +144,31 @@ int main(int argc, char* argv[])
                   "for emulating and testing on virtual serial port.\n"
                   "You can use tty0tty or com0com to emulating port.\n\n"
                   "If are you ready, type in command line\n"
-                  "./thinkGearSimulator [portname], where portname can be\n"
+                  "./thinkGearSimulator [portname] [inputfile], where portname can be\n"
                   "for UNIX /dev/tnt0 or Window COM0\n";
-
-    if (argc < 2) {
+    unsigned char *inbuf;
+    int inbuf_len=0;
+    if (argc < 3) {
         printf("USAGE:\n");
         printf("%s\n", helpMsg);
         return 0;
     } else {
         portname = argv[1];
-        printf("Choosed port: %s", portname);
+        printf("Choosed port: %s\n", portname);
+        FILE *in_f = fopen(argv[2], "rb");
+        int c;
+        while (c = fgetc(in_f) != EOF) {
+            inbuf_len++;
+        }
+        rewind(in_f);
+        inbuf = calloc(inbuf_len, sizeof(char));
+        fread(inbuf, 1, inbuf_len, in_f);
+        fflush(in_f);
+        printf("Loading file: %s\n", argv[2]);
+        printf("size: %i\n", inbuf_len);
+        fclose(in_f);
     }
-    
+
     tg_t tg;
     buffer_t buf;
     buf.pos=0;
@@ -166,8 +179,8 @@ int main(int argc, char* argv[])
     tg.buf=&buf;
     buf.write=Buffer_Write;
 
-    for (int i=0; i<thinkgear_test_len; i++) {
-        TG_Parse(&tg, thinkgear_test[i]);
+    for (int i=0; i<inbuf_len; i++) {
+        TG_Parse(&tg, inbuf[i]);
         usleep(138);
         //printf("Buffer [%i] = 0x%X\n", buf.pos, buf.data[buf.pos] );
     }
